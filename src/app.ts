@@ -11,7 +11,6 @@ const app = express();
 
 // Otherwise the body is undefined
 app.use(express.json());
-app.use(express.urlencoded());
 
 const port = 3000;
 
