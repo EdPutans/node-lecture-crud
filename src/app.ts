@@ -18,14 +18,18 @@ const port = 3000;
 // create an array we can edit. Yes, we will mutate it in this lesson
 let dogs = [...dataDogs];
 
+/**
+@get_all_doggos
+*/
 app.get("/dogs/", (req, res) => {
   res.send(dogs);
 });
-
+/**
+@get_single_pupper
+*/
 app.get("/dogs/:id", (req, res) => {
   // add ts-node-dev
   // update tsconfig -> "ESNext"
-
   const doggo = findById(dogs, req.params.id);
 
   // Remind about the status codes! :) + teapot
@@ -35,6 +39,9 @@ app.get("/dogs/:id", (req, res) => {
   return res.send(doggo);
 });
 
+/**
+@add_another_doggo
+*/
 app.post(
   "/dogs",
   // quite a mouthful. Might be worth redesigning:
@@ -63,7 +70,9 @@ app.post(
     return res.send(dogs);
   }
 );
-
+/**
+@update_doge
+*/
 app.patch("/dogs/:id", (req: DogRequest, res) => {
   const doggoIndex = findItemIndex(dogs, req.params.id);
 
@@ -79,6 +88,9 @@ app.patch("/dogs/:id", (req: DogRequest, res) => {
   res.send(dogs);
 });
 
+/**
+@murder_animal
+*/
 app.delete("/dogs/:id", (req, res) => {
   const doggoIndex = findItemIndex(dogs, req.params.id);
 
