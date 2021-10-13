@@ -1,20 +1,15 @@
 import express from "express";
 import dataDogs, { Doggo } from "./data/dogs";
-import { Request } from "express";
-import generateId from "./helpers/generateId";
-import findById from "./helpers/findById";
-import findItemIndex from "./helpers/findItemIndex";
+import { Request, Response } from "express";
 
-type DogRequest = Request<any, any, Partial<Doggo>>;
+type DogRequest = Request<{ id: string }, any, Doggo>;
 
 const app = express();
 
-// Otherwise the body is undefined
 app.use(express.json());
 
 const port = 3000;
 
-// create an array we can edit. Yes, we will mutate it in this lesson
 let dogs = [...dataDogs];
 
 /**
@@ -27,11 +22,10 @@ app.get("/dogs/", (req, res) => {
 @get_single_pupper
 */
 app.get("/dogs/:id", (req, res) => {
-  // add ts-node-dev
-  // update tsconfig -> "ESNext"
-  const doggo = findById(dogs, req.params.id);
+  const doggo = dogs.find(
+    (item) => item.id.toString() === req.params.id.toString()
+  );
 
-  // Remind about the status codes! :) + teapot
   if (!doggo) return res.status(404).send("404: Dog not found");
 
   console.log(`Someone is interested in ${doggo.name}!`);
@@ -41,47 +35,45 @@ app.get("/dogs/:id", (req, res) => {
 /**
 @add_another_doggo
 */
-app.post(
-  "/dogs",
-  // quite a mouthful. Might be worth redesigning:
-  (req: DogRequest, res) => {
-    // add @types/express
-    // introduce Postman if they haven't yet seen it
-    // npm install body-parser --save
-    if (!req.body.age || !req.body.name)
-      return res.status(400).send("Name or age aren't present");
+app.post("/dogs", (req: DogRequest, res) => {
+  if (!req.body.age || !req.body.name)
+    return res.status(400).send("Name or age aren't present");
 
-    if (typeof req.body.name !== "string")
-      return res.status(400).send("Name must be a string");
+  if (typeof req.body.name !== "string")
+    return res.status(400).send("Name must be a string");
 
-    if (typeof req.body.age !== "number")
-      return res.status(400).send("Wrong type for number");
+  if (typeof req.body.age !== "number")
+    return res.status(400).send("Wrong type for age");
 
-    const newDog: Doggo = {
-      // we have to explicitly tell this so TS doesn't shout
-      age: req.body.age,
-      name: req.body.name,
-      id: generateId(dogs),
-    };
+  const lastDogId = Math.max(...dogs.map((doggo) => doggo.id));
 
-    dogs = [...dogs, newDog];
+  const newId = dogs.length ? lastDogId + 1 : 1;
 
-    return res.send(dogs);
-  }
-);
+  console.log({ lastDogId, newId });
+  const newDog: Doggo = {
+    age: req.body.age,
+    name: req.body.name,
+    id: newId,
+  };
+
+  if (req.body.hasOwner) newDog.hasOwner = req.body.hasOwner;
+  if (req.body.size) newDog.size = req.body.size;
+
+  dogs = [...dogs, newDog];
+
+  return res.send(dogs);
+});
 /**
 @update_doge
 */
 app.patch("/dogs/:id", (req: DogRequest, res) => {
-  const doggoIndex = findItemIndex(dogs, req.params.id);
+  const doggoIndex = dogs.findIndex(
+    (pupper) => pupper.id.toString() === req.params.id
+  );
 
   if (doggoIndex === -1) return res.status(404).send("404: Dog not found");
 
-  const updatedDog = {
-    ...dogs[doggoIndex],
-    ...req.body,
-  };
-
+  const updatedDog = { ...dogs[doggoIndex], ...req.body };
   dogs[doggoIndex] = updatedDog;
 
   res.send(dogs);
@@ -90,14 +82,10 @@ app.patch("/dogs/:id", (req: DogRequest, res) => {
 /**
 @murder_animal
 */
-app.delete("/dogs/:id", (req, res) => {
-  const doggoIndex = findItemIndex(dogs, req.params.id);
+app.delete("/dogs/:id", (req: DogRequest, res) => {
+  dogs = dogs.filter((doggo) => doggo.id.toString() !== req.params.id);
 
-  if (doggoIndex === -1) return res.status(404).send("404: Dog not found");
-
-  delete dogs[doggoIndex];
-
-  res.send(dogs);
+  res.status(204).send();
 });
 
 app.listen(port, (): void => {

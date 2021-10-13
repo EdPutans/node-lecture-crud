@@ -1,12 +1,11 @@
 {
   "name": "exercise-one",
   "version": "1.0.0",
-  "main": "app.ts",
+  "main": "src/app.ts",
   "author": "Hoxton",
   "license": "MIT",
   "scripts": {
-    "start": "ts-node src/app.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "ts-node src/app.ts"
   },
   "devDependencies": {
     "@types/node": "^16.10.2",
